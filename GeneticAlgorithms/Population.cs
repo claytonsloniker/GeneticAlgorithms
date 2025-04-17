@@ -18,8 +18,13 @@ namespace GeneticAlgorithms
             this.timeSlots = timeSlots;
         }
 
-        public Schedule GenerateRandomSchedule()
+        /*
+         * <summary> Generates a random schedule by assigning activities to rooms, time slots, and facilitators. </summary>
+         * <returns> A randomly generated schedule. </returns>
+         */
+        public Schedule GenerateRandomSchedule(int? seed = null)
         {
+            var random = seed.HasValue ? new Random(seed.Value) : new Random(); // Use a random seed if provided
             var schedule = new Schedule();
 
             // Randomly assign activities to rooms, time slots, and facilitators
@@ -36,10 +41,16 @@ namespace GeneticAlgorithms
             return schedule;
         }
 
+
+        /*
+         * <summary> Calculates the fitness of a schedule based on predefined criteria. </summary>
+         * <param name="schedule"> The schedule to evaluate. </param>
+         * <returns> A fitness score representing the quality of the schedule. </returns>
+         */
         public double GetFitness(Schedule schedule)
         {
-            // Fitness calculation logic
-            throw new NotImplementedException("Fitness calculation not implemented yet.");
+            var fitnessFunction = new FitnessFunction();
+            return fitnessFunction.CalculateFitness(schedule);
         }
     }
 }

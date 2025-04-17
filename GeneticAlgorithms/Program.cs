@@ -24,8 +24,8 @@ namespace GeneticAlgorithms
 
             var activities = new List<Activity>
             {
-                new Activity("SLA100A", 50, new List<string> { "Glen", "Lock", "Banks", "Zeldin" }, new List<string> { "Numen", "Richards" }),
-                new Activity("SLA100B", 50, new List<string> { "Glen", "Lock", "Banks", "Zeldin" }, new List<string> { "Numen", "Richards" }),
+                new Activity("SLA101A", 50, new List<string> { "Glen", "Lock", "Banks", "Zeldin" }, new List<string> { "Numen", "Richards" }),
+                new Activity("SLA101B", 50, new List<string> { "Glen", "Lock", "Banks", "Zeldin" }, new List<string> { "Numen", "Richards" }),
                 new Activity("SLA191A", 50, new List<string> { "Glen", "Lock", "Banks", "Zeldin" }, new List<string> { "Numen", "Richards" }),
                 new Activity("SLA191B", 50, new List<string> { "Glen", "Lock", "Banks", "Zeldin" }, new List<string> { "Numen", "Richards" }),
                 new Activity("SLA201", 50, new List<string> { "Glen", "Banks", "Zeldin", "Shaw" }, new List<string> { "Numen", "Richards", "Singer" }),
@@ -38,16 +38,27 @@ namespace GeneticAlgorithms
             };
 
             var population = new Population(activities, facilitators, rooms, timeSlots);
+            var fitnessFunction = new FitnessFunction();
 
-            // Randomly generate 500 schedules
+            var fitnessScores = new List<double>();
+
+            // Generate schedules and calculate fitness
             for (int i = 0; i < 2; i++)
             {
-                var schedule = population.GenerateRandomSchedule();
-                //var fitness = population.GetFitness(schedule);
-                //Console.WriteLine(schedule.ToString());
+                var schedule = population.GenerateRandomSchedule(seed: 42);
+                var fitness = population.GetFitness(schedule);
+                Console.WriteLine($"Schedule {i + 1}: Fitness = {fitness:F4}");
+                fitnessScores.Add(fitness);
             }
 
-            
+            // Apply softmax normalization
+            var probabilities = fitnessFunction.Softmax(fitnessScores);
+
+            // Output probabilities
+            for (int i = 0; i < probabilities.Count; i++)
+            {
+                Console.WriteLine($"Schedule {i + 1}: Probability = {probabilities[i]:F4}");
+            }
 
         }
     }
