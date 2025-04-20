@@ -95,25 +95,24 @@ internal class FitnessFunction
             score -= 0.4;
 
         // Check for activities in the same time slot
-        var activitiesInSameTimeSlot = activitiesByFacilitator
-            .GroupBy(sa => sa.TimeSlot)
-            .Where(g => g.Count() > 1);
+        var activitiesGroupedByTimeSlot = activitiesByFacilitator
+            .GroupBy(sa => sa.TimeSlot);
 
-        foreach (var group in activitiesInSameTimeSlot)
+        foreach (var group in activitiesGroupedByTimeSlot)
         {
-            score -= 0.2; // Penalty for multiple activities in the same time slot
+            if (group.Count() == 1)
+            {
+                score += 0.2; // Reward for only one activity in this time slot
+            }
+            else if (group.Count() > 1)
+            {
+                score -= 0.2; // Penalty for multiple activities in the same time slot
+            }
         }
 
         // Check for consecutive time slots
         for (int i = 0; i < activitiesByFacilitator.Count - 1; i++)
         {
-            // only assigned 1 activity
-            if (activitiesByFacilitator.Count == 1) 
-            {
-                score += 0.2;
-                break;
-            }
-            
             var currentActivity = activitiesByFacilitator[i];
             var nextActivity = activitiesByFacilitator[i + 1];
 
@@ -124,9 +123,10 @@ internal class FitnessFunction
                     (nextActivity.Room.Name == "Roman" || nextActivity.Room.Name == "Beach"))
                 {
                     score -= 0.4;
-                } else
+                }
+                else
                 {
-                    score += 0.5; // Consecutive activities
+                    score += 0.5; // Reward for consecutive activities
                 }
             }
         }
@@ -135,31 +135,47 @@ internal class FitnessFunction
     }
 
 
+
     private double EvaluateActivitySpecificAdjustments(ScheduledActivity activity, Schedule schedule)
     {
         double score = 0;
 
-        // Intra-Activity Adjustments
-        if (activity.Activity.Name.Contains("SLA101") || activity.Activity.Name.Contains("SLA191"))
+        // Intra-Activity Adjustments for matching sections (SLA101A/B and SLA191A/B)
+        if (activity.Activity.Name.Contains("SLA101") || activity.Activity.Name.Contains("SLA101B"))
         {
-            var relatedActivities = schedule.ScheduledActivities
-                .Where(sa => sa.Activity.Name == activity.Activity.Name);
-
-            foreach (var relatedActivity in relatedActivities)
+            // Determine the matching section
+            string matchingSection = activity.Activity.Name switch
             {
-                if (relatedActivity == activity) continue;
+                "SLA101A" => "SLA101B",
+                "SLA101B" => "SLA101A",
+                "SLA191A" => "SLA191B",
+                "SLA191B" => "SLA191A",
+                _ => null
+            };
 
-                var timeDifference = Math.Abs(
-                    GetTimeInHours(activity.TimeSlot) - GetTimeInHours(relatedActivity.TimeSlot));
+            if (matchingSection != null)
+            {
+                var matchingActivity = schedule.ScheduledActivities
+                    .FirstOrDefault(sa => sa.Activity.Name == matchingSection);
 
-                if (timeDifference > 4)
-                    score += 0.5; // More than 4 hours apart
-                else if (timeDifference == 0)
-                    score -= 0.5; // Same time slot
+                if (matchingActivity != null)
+                {
+                    var timeDifference = Math.Abs(
+                        GetTimeInHours(activity.TimeSlot) - GetTimeInHours(matchingActivity.TimeSlot));
+
+                    if (timeDifference == 0)
+                    {
+                        score -= 0.5; // Penalty for being in the same time slot
+                    }
+                    else if (timeDifference > 4)
+                    {
+                        score += 0.5; // Reward for being more than 4 hours apart
+                    }
+                }
             }
         }
 
-        // Inter-Activity Adjustments
+        // Inter-Activity Adjustments for SLA101 and SLA191
         if (activity.Activity.Name.Contains("SLA101") || activity.Activity.Name.Contains("SLA191"))
         {
             var relatedActivities = schedule.ScheduledActivities
@@ -169,39 +185,45 @@ internal class FitnessFunction
 
             foreach (var relatedActivity in relatedActivities)
             {
-                // Ensure the comparison is between SLA 101 and SLA 191
-                if (activity.Activity.Name == relatedActivity.Activity.Name) continue;
+                // Skip over matching pairs (e.g., SLA101A skips SLA101B and vice versa)
+                if ((activity.Activity.Name == "SLA101A" && relatedActivity.Activity.Name == "SLA101B") ||
+                    (activity.Activity.Name == "SLA101B" && relatedActivity.Activity.Name == "SLA101A") ||
+                    (activity.Activity.Name == "SLA191A" && relatedActivity.Activity.Name == "SLA191B") ||
+                    (activity.Activity.Name == "SLA191B" && relatedActivity.Activity.Name == "SLA191A"))
+                {
+                    continue;
+                }
 
                 var timeDifference = Math.Abs(
                     GetTimeInHours(activity.TimeSlot) - GetTimeInHours(relatedActivity.TimeSlot));
 
                 if (timeDifference == 1)
                 {
-
                     // Roman/Beach logic
-                    if ((activity.Room.Name == "Roman" || activity.Room.Name == "Beach") !=
-                        (relatedActivity.Room.Name == "Roman" || relatedActivity.Room.Name == "Beach"))
+                    if ((activity.Room.Name.Contains("Roman") || activity.Room.Name.Contains("Beach")) !=
+                        (relatedActivity.Room.Name.Contains("Roman") || relatedActivity.Room.Name.Contains("Beach")))
                     {
-                        score -= 0.4;
+                        score -= 0.4; // Penalty for mismatched room categories
                     }
                     else
                     {
-                        score += 0.5; // Consecutive time slots
-                    }  
+                        score += 0.5; // Reward for consecutive time slots
+                    }
                 }
                 else if (timeDifference == 0)
                 {
-                    score -= 0.25; // Same time slot
+                    score -= 0.25; // Penalty for being in the same time slot
                 }
                 else if (timeDifference == 2)
                 {
-                    score += 0.25; // 2-hour separation
+                    score += 0.25; // Reward for 2-hour separation
                 }
             }
         }
 
         return score;
     }
+
 
 
     private int GetTimeInHours(string timeSlot)

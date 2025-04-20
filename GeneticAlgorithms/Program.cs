@@ -1,4 +1,4 @@
-﻿using static System.Runtime.InteropServices.JavaScript.JSType;
+﻿using System.IO;
 
 namespace GeneticAlgorithms
 {
@@ -39,27 +39,73 @@ namespace GeneticAlgorithms
 
             var population = new Population(activities, facilitators, rooms, timeSlots);
             var fitnessFunction = new FitnessFunction();
+            var reproduction = new Reproduction(rooms, timeSlots, facilitators);
 
-            var fitnessScores = new List<double>();
+            int generationCount = 0;
+            int populationSize = 500;
+            double improvementThreshold = 0.01; // 1% improvement
+            List<Schedule> currentGeneration = population.GenerateInitialPopulation(populationSize);
+            List<double> averageFitnessHistory = new List<double>();
 
-            // Generate schedules and calculate fitness
-            for (int i = 0; i < 2; i++)
+            while (true)
             {
-                var schedule = population.GenerateRandomSchedule(seed: 42);
-                var fitness = population.GetFitness(schedule);
-                Console.WriteLine($"Schedule {i + 1}: Fitness = {fitness:F4}");
-                fitnessScores.Add(fitness);
+                generationCount++;
+
+                // Calculate fitness for the current generation
+                var fitnessScores = currentGeneration
+                    .Select(schedule => fitnessFunction.CalculateFitness(schedule))
+                    .ToList();
+
+                double averageFitness = fitnessScores.Average();
+                averageFitnessHistory.Add(averageFitness);
+
+                Console.WriteLine($"Generation {generationCount}: Average Fitness = {averageFitness:F4}");
+
+                // Stop condition: After 100 generations, check improvement
+                if (generationCount > 100)
+                {
+                    double previousAverageFitness = averageFitnessHistory[generationCount - 2];
+                    double improvement = (averageFitness - previousAverageFitness) / previousAverageFitness;
+
+                    if (improvement < improvementThreshold)
+                    {
+                        Console.WriteLine("Stopping criteria met: Improvement < 1%");
+                        break;
+                    }
+                }
+
+                // Generate the next generation
+                currentGeneration = reproduction.GenerateNextGeneration(
+                    currentGeneration,
+                    fitnessFunction,
+                    populationSize
+                );
             }
 
-            // Apply softmax normalization
-            var probabilities = fitnessFunction.Softmax(fitnessScores);
+            // Find the best schedule in the final generation
+            var bestSchedule = currentGeneration
+                .OrderByDescending(schedule => fitnessFunction.CalculateFitness(schedule))
+                .First();
 
-            // Output probabilities
-            for (int i = 0; i < probabilities.Count; i++)
+            double bestFitness = fitnessFunction.CalculateFitness(bestSchedule);
+            Console.WriteLine($"Best Fitness in Final Generation: {bestFitness:F4}");
+
+            // Write the best schedule to an output file
+            WriteScheduleToFile(bestSchedule, "BestSchedule.txt");
+        }
+
+        static void WriteScheduleToFile(Schedule schedule, string fileName)
+        {
+            using (var writer = new StreamWriter(fileName))
             {
-                Console.WriteLine($"Schedule {i + 1}: Probability = {probabilities[i]:F4}");
+                writer.WriteLine("Best Schedule:");
+                foreach (var activity in schedule.ScheduledActivities)
+                {
+                    writer.WriteLine($"Activity: {activity.Activity.Name}, Room: {activity.Room.Name}, TimeSlot: {activity.TimeSlot}, Facilitator: {activity.AssignedFacilitator}");
+                }
             }
 
+            Console.WriteLine($"Best schedule written to {fileName}");
         }
     }
 }

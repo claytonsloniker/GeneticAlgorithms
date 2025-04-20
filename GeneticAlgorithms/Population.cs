@@ -19,6 +19,26 @@ namespace GeneticAlgorithms
         }
 
         /*
+         * <summary> Generates an initial population of schedules. </summary>
+         * <param name="populationSize"> The number of schedules to generate. </param>
+         * <param name="seed"> Optional seed for random number generation. </param>
+         * <returns> A list of randomly generated schedules. </returns>
+         */
+        public List<Schedule> GenerateInitialPopulation(int populationSize, int? seed = null)
+        {
+            var random = seed.HasValue ? new Random(seed.Value) : new Random();
+            var initialPopulation = new List<Schedule>();
+
+            for (int i = 0; i < populationSize; i++)
+            {
+                initialPopulation.Add(GenerateRandomSchedule(random.Next()));
+            }
+
+            return initialPopulation;
+        }
+
+
+        /*
          * <summary> Generates a random schedule by assigning activities to rooms, time slots, and facilitators. </summary>
          * <returns> A randomly generated schedule. </returns>
          */

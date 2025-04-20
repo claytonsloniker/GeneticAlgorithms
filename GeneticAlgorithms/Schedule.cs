@@ -20,9 +20,9 @@ namespace GeneticAlgorithms
     public class ScheduledActivity
     {
         public Activity Activity { get; private set; }
-        public Room Room { get; private set; }
-        public string TimeSlot { get; private set; }
-        public string AssignedFacilitator { get; private set; }
+        public Room Room { get; set; }
+        public string TimeSlot { get; set; }
+        public string AssignedFacilitator { get; set; }
 
         public ScheduledActivity(Activity activity, Room room, string timeSlot, string assignedFacilitator)
         {
