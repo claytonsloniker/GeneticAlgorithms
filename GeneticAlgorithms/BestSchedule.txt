@@ -1,0 +1,12 @@
+Best Schedule:
+Activity: SLA101A, Room: Loft 310, TimeSlot: 10:00, Facilitator: Banks
+Activity: SLA101B, Room: Slater 003, TimeSlot: 11:00, Facilitator: Banks
+Activity: SLA191A, Room: Loft 310, TimeSlot: 12:00, Facilitator: Banks
+Activity: SLA191B, Room: Frank 119, TimeSlot: 12:00, Facilitator: Singer
+Activity: SLA201, Room: Beach 201, TimeSlot: 14:00, Facilitator: Shaw
+Activity: SLA291, Room: Frank 119, TimeSlot: 13:00, Facilitator: Banks
+Activity: SLA303, Room: Beach 201, TimeSlot: 15:00, Facilitator: Shaw
+Activity: SLA304, Room: Roman 216, TimeSlot: 11:00, Facilitator: Shaw
+Activity: SLA394, Room: Slater 003, TimeSlot: 13:00, Facilitator: Singer
+Activity: SLA449, Room: Loft 206, TimeSlot: 10:00, Facilitator: Singer
+Activity: SLA451, Room: Loft 310, TimeSlot: 11:00, Facilitator: Singer
