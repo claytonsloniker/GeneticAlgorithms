@@ -42,6 +42,11 @@ namespace GeneticAlgorithms
             var fitnessScores = currentGeneration.Select(fitnessFunction.CalculateFitness).ToList();
             var probabilities = fitnessFunction.Softmax(fitnessScores);
 
+            // Track the best fitness score
+            double bestFitness = fitnessScores.Max();
+            double previousBestFitness = double.MinValue;
+            int stableGenerations = 0; // Count generations with no significant improvement
+
             while (nextGeneration.Count < nextGenSize)
             {
                 var parent1 = SelectParent(currentGeneration, probabilities);
@@ -54,6 +59,25 @@ namespace GeneticAlgorithms
 
                 nextGeneration.Add(offspring);
             }
+
+            // Check if fitness is improving
+            if (bestFitness > previousBestFitness + 0.01) // Threshold for improvement
+            {
+                AdjustMutationRate(0.5); // Cut mutation rate in half
+                stableGenerations = 0; //reset stability counter
+            }
+            else
+            {
+                stableGenerations++;
+            }
+
+            // Stop adjusting mutation rate if fitness is stable for 5 generations
+            if (stableGenerations >= 5)
+            {
+                Console.WriteLine("Fitness has stabilized. Mutation rate adjustment stopped.");
+            }
+
+            previousBestFitness = bestFitness;
 
             return nextGeneration;
         }

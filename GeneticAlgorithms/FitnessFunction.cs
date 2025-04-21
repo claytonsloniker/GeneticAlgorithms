@@ -7,14 +7,14 @@ internal class FitnessFunction
     {
         double fitness = 0;
 
-        fitness += EvaluateSameTimeSlotAndRoom(schedule); // TODO, check if this is correct
+        fitness += EvaluateSameTimeSlotAndRoom(schedule);
 
         // Evaluate each scheduled activity
         foreach (var activity in schedule.ScheduledActivities)
         {
             fitness += EvaluateRoomSize(activity);
             fitness += EvaluateFacilitatorAssignment(activity, schedule);
-            fitness += EvaluateActivitySpecificAdjustments(activity, schedule); // TODO, fix logic, should be for the 2 activity sections A and B
+            fitness += EvaluateActivitySpecificAdjustments(activity, schedule);
         }
 
         // Evaluate facilitator load across the entire schedule
@@ -23,7 +23,7 @@ internal class FitnessFunction
             .Distinct();
         foreach (var facilitator in facilitators)
         {
-            fitness += EvaluateFacilitatorLoad(facilitator, schedule); // TODO, check if correct
+            fitness += EvaluateFacilitatorLoad(facilitator, schedule);
         }
 
         return fitness;
@@ -88,7 +88,7 @@ internal class FitnessFunction
             .OrderBy(sa => GetTimeInHours(sa.TimeSlot))
             .ToList();
 
-        // Check total number of activities
+        // check total number of activities
         if (activitiesByFacilitator.Count > 4)
             score -= 0.5;
         else if (activitiesByFacilitator.Count <= 2 && facilitator != "Dr. Tyler")
@@ -140,7 +140,7 @@ internal class FitnessFunction
     {
         double score = 0;
 
-        // Intra-Activity Adjustments for matching sections (SLA101A/B and SLA191A/B)
+        //Intra Activity Adjustments for matching sections (SLA101A/B and SLA191A/B)
         if (activity.Activity.Name.Contains("SLA101") || activity.Activity.Name.Contains("SLA101B"))
         {
             // Determine the matching section
@@ -175,7 +175,7 @@ internal class FitnessFunction
             }
         }
 
-        // Inter-Activity Adjustments for SLA101 and SLA191
+        // Inter Activity Adjustments for SLA101 and SLA191
         if (activity.Activity.Name.Contains("SLA101") || activity.Activity.Name.Contains("SLA191"))
         {
             var relatedActivities = schedule.ScheduledActivities
@@ -203,20 +203,20 @@ internal class FitnessFunction
                     if ((activity.Room.Name.Contains("Roman") || activity.Room.Name.Contains("Beach")) !=
                         (relatedActivity.Room.Name.Contains("Roman") || relatedActivity.Room.Name.Contains("Beach")))
                     {
-                        score -= 0.4; // Penalty for mismatched room categories
+                        score -= 0.4; // penalty for mismatched room categories
                     }
                     else
                     {
-                        score += 0.5; // Reward for consecutive time slots
+                        score += 0.5; //reward for consecutive time slots
                     }
                 }
                 else if (timeDifference == 0)
                 {
-                    score -= 0.25; // Penalty for being in the same time slot
+                    score -= 0.25; // penalty for being in the same time slot
                 }
                 else if (timeDifference == 2)
                 {
-                    score += 0.25; // Reward for 2-hour separation
+                    score += 0.25; // reward for 2 hour separation
                 }
             }
         }

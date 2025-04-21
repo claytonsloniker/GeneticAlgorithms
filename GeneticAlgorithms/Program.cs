@@ -101,7 +101,7 @@ namespace GeneticAlgorithms
                 writer.WriteLine("Best Schedule:");
                 foreach (var activity in schedule.ScheduledActivities)
                 {
-                    writer.WriteLine($"Activity: {activity.Activity.Name}, Room: {activity.Room.Name}, TimeSlot: {activity.TimeSlot}, Facilitator: {activity.AssignedFacilitator}");
+                    writer.WriteLine($"Activity: {activity.Activity.Name}, Room: {activity.Room.Name}, Time Slot: {activity.TimeSlot}, Facilitator: {activity.AssignedFacilitator}");
                 }
             }
 
